@@ -1,41 +1,51 @@
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SparkSession
-import org.rovak.scraper.ScrapeManager._
-import org.jsoup.nodes.Element
-import org.rovak.scraper.models.{Href, WebPage}
-import org.rovak.scraper.spiders.Spider
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
-
-import scala.collection.JavaConversions._
-import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
-
+import SparkConf._
+import breeze.linalg.Matrix
+import org.apache.spark.mllib.linalg
+import org.apache.spark.mllib.linalg.distributed.{CoordinateMatrix, IndexedRow, IndexedRowMatrix, RowMatrix}
+import org.apache.spark.mllib.linalg.{SparseVector, Vector, Vectors}
 
 object dataframes extends App{
+  val rdd: RDD[String] = spark.sparkContext.textFile("arts/*").cache()
 
-  @transient val spark:SparkSession = SparkSession.builder
-    .config("spark.sql.warehouse.dir", "file:///C:/Users/admin/IdeaProjects/search/spark-warehouse")
-    .master("local[*]")
-    .appName("SVDsearchEnginee")
-    .getOrCreate()
-  def toBagOfWords(path: String): RDD[(String, Int)] = {
-    toCountedBagOfWords(spark.sparkContext.textFile(path))
+  val x =new BagOfWords(rdd)
+  val bagMap = x.asMap
+  val stemmer = new MyStemmer()
+
+  def transform(array: RDD[(String,Int)]): linalg.Vector = {
+    val indicesval = array.map(record =>(bagMap.get(record._1),record._2))
+      .filter(_._1.isDefined)
+      .map(tup => (tup._1.get,tup._2))
+      .collect()
+    val tup = indicesval.unzip
+    Vectors.sparse(indicesval.length,tup._1.toArray,tup._2.toArray.map(_.toDouble))
   }
 
-  def toCountedBagOfWords(rdd: RDD[String]): RDD[(String, Int)] = {
-    rdd
-      .flatMap(_.split("\\W+"))
-      .map(_.toLowerCase)
-      .map { word => (word, 1) }
-      .reduceByKey(_ + _)
+  def transform(words: Map[String,Int]): Vector = {
+    val indicesval = words.map(record =>(bagMap.get(record._1),record._2))
+      .filter(_._1.isDefined)
+      .map(tup => (tup._1.get,tup._2)).toArray
+    val tup = indicesval.unzip
+    Vectors.sparse(indicesval.length,tup._1.toArray,tup._2.toArray.map(_.toDouble))
   }
-  val x:RDD[(String,Int)] = toCountedBagOfWords(spark.sparkContext.textFile("C:\\Users\\admin\\IdeaProjects\\search\\arts\\*"))
-  x.foreach(println)
-  val stemmer = new MyStemmer(spark)
-  stemmer.stem(x).distinct().collect().foreach(println)
-// Scraper.parseAndSave("https://www.bloomberg.com/news/articles/2018-01-05/bitcoin-miners-are-shifting-outside-china-amid-state-clampdown","www.bloomberg.com","arts")
-//  Thread.sleep(100000)
+
+  def countWords(words: Array[String]): Map[String, Int] = {
+    words.groupBy(identity).mapValues(_.length)
+  }
+
+  def toSparseVector(): RDD[(Vector,Long)] = {
+    rdd.map(_.split("\\W+").map(_.toLowerCase))   // transform each file into array of words
+      .map(arr =>stemmer.stem(arr.zipWithIndex))  // stem words in files
+     .map(countWords)
+     .map(transform).zipWithIndex()                   // transform arrays to sparse vectorstoSparseVector().map((x,y) => (y,x))
+  }
+  println("zrobione parsowanie")
+
+  val c:RDD[IndexedRow] = toSparseVector().map {case (vector,index) => IndexedRow(index,vector) }
+  println("zrobione indeksowanie")
+  val z = new IndexedRowMatrix(c).toCoordinateMatrix().transpose().toRowMatrix()
+  println(z.rows.count())
+  println("done" + z + "\ndone")
+  print("a")
 
 }

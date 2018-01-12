@@ -1,10 +1,6 @@
-
-import breeze.linalg.split
-import org.apache.spark.SparkConf
-import org.apache.spark.SparkContext
 import org.apache.spark.mllib.feature
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{SQLContext, SparkSession}
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 
 object PlayGround extends App {

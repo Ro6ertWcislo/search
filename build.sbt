@@ -7,6 +7,7 @@ scalaVersion := "2.10.7"
 libraryDependencies += "junit" % "junit" % "4.10" % "test"
 
 libraryDependencies ++= Seq(
+  "org.mongodb.spark" %% "mongo-spark-connector" % "2.0.0",
   "org.apache.spark" %% "spark-core" % "2.0.0",
   "org.apache.spark" %% "spark-sql" % "2.0.0",
   "org.apache.spark" %% "spark-mllib" % "2.0.0",
