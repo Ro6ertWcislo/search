@@ -1,4 +1,7 @@
+import breeze.numerics.Bessel.i1
+import org.apache.spark.ml.linalg.Matrix
 import org.apache.spark.mllib.feature
+import org.apache.spark.mllib.linalg.distributed.RowMatrix
 import org.apache.spark.mllib.linalg.{SparseVector, Vectors}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
@@ -53,33 +56,40 @@ object PlayGround extends App {
 //
 //  stemmed.show()
 
-  def time[R](block: => R): (R, Long) = {
-    val t0 = System.nanoTime()
-    val result = block // call-by-name
-    val t1 = System.nanoTime()
-    val timediff = t1 - t0
-    println("Elapsed time: " + (timediff) + "ns")
-    (result, timediff)
-  }
+//  def time[R](block: => R): (R, Long) = {
+//    val t0 = System.nanoTime()
+//    val result = block // call-by-name
+//    val t1 = System.nanoTime()
+//    val timediff = t1 - t0
+//    println("Elapsed time: " + (timediff) + "ns")
+//    (result, timediff)
+//  }
+//
+//
+//  def IDF(v: SparseVector):SparseVector = {
+//  val idfFactor = v.size.toDouble / v.numActives.toDouble
+//  Vectors.dense(v.toArray.map(_*idfFactor)).toSparse
+//}
+//
+//  def IDF2(v: SparseVector):SparseVector = {
+//    val idfFactor = v.size.toDouble / v.numActives.toDouble
+//    val newValues = v.values.map(_ * idfFactor)
+//    Vectors.sparse(v.size, v.indices, newValues).toSparse
+//  }
+//  time{ (1 to 10).foreach{ i=>
+//    val c =Vectors.sparse(200000*i,(1 to 100000*i).toArray,(1 to 100000*i).map(_.toDouble).toArray[Double]).toSparse
+//    print(IDF(c).values.length)
+//  }}
+//  println("duuuuuuuuuuupa")
+//  time{ (1 to 10).foreach{ i=>
+//    val c =Vectors.sparse(200000*i,(1 to 100000*i).toArray,(1 to 100000*i).map(_.toDouble).toArray[Double]).toSparse
+//    print(IDF2(c).values.length)
+//  }}
+def SparseVectorLength(v:SparseVector):Double = {math.sqrt(v.values.map(value => value*value).sum)}
+    val c1 = Vectors.sparse(100,Array(0,5,11),Array(1,2,2)).toSparse
+    val c2 = Vectors.sparse(100,Array(1,2,10),Array(1,2,2)).toSparse
+    print(SparseVectorLength(c1.toSparse))
+    import SparkConf._
+    println(c1.apply(10))
 
-
-  def IDF(v: SparseVector):SparseVector = {
-  val idfFactor = v.size.toDouble / v.numActives.toDouble
-  Vectors.dense(v.toArray.map(_*idfFactor)).toSparse
-}
-
-  def IDF2(v: SparseVector):SparseVector = {
-    val idfFactor = v.size.toDouble / v.numActives.toDouble
-    val newValues = v.values.map(_ * idfFactor)
-    Vectors.sparse(v.size, v.indices, newValues).toSparse
-  }
-  time{ (1 to 10).foreach{ i=>
-    val c =Vectors.sparse(200000*i,(1 to 100000*i).toArray,(1 to 100000*i).map(_.toDouble).toArray[Double]).toSparse
-    print(IDF(c).values.length)
-  }}
-  println("duuuuuuuuuuupa")
-  time{ (1 to 10).foreach{ i=>
-    val c =Vectors.sparse(200000*i,(1 to 100000*i).toArray,(1 to 100000*i).map(_.toDouble).toArray[Double]).toSparse
-    print(IDF2(c).values.length)
-  }}
 }
