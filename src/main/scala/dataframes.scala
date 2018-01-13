@@ -3,38 +3,25 @@ import SparkConf._
 import utils._
 import org.apache.spark.mllib.linalg.distributed.{CoordinateMatrix, IndexedRow, IndexedRowMatrix, RowMatrix}
 import org.apache.spark.mllib.linalg.{SparseVector, Vector, Vectors}
-import org.apache.spark.sql.functions.input_file_name
 object dataframes extends App{
 
-  val rdd: RDD[(String,String)] = spark.sparkContext.wholeTextFiles("arts/*").cache()
-  val bagOfWords =new BagOfWords(rdd)
-  val bagMap = bagOfWords.asMap
-  val stemmer = new MyStemmer()
-
-
-  def mapToIndex(words: Map[String,Int]): SparseVector = {
-    val indicesval = words.map(record =>(bagMap.get(record._1),record._2))
-      .filter(_._1.isDefined)
-      .map(tup => (tup._1.get,tup._2)).toArray
-    val tup = indicesval.unzip
-    Vectors.sparse(bagMap.size,tup._1.toArray,tup._2.toArray.map(_.toDouble)).toSparse
+  def getRDD: RDD[(String,String)] = {
+   if(appConf.isDataStored) sc.objectFile(appConf.rddStorage).cache()
+   else sc.wholeTextFiles(appConf.textDirectory).cache()
   }
 
-  def countWords(words: Array[String]): Map[String, Int] = {
-    words.groupBy(identity).mapValues(_.length)
-  }
+  val rdd: RDD[(String,String)] = getRDD
+  val searchEngine = SearchEngine(rdd)
 
-  def indexRDD(rdd : RDD[String]): RDD[SparseVector] = {
-    rdd.map(_.split("\\W+").map(_.toLowerCase))   // transform each file into array of words
-      .map(arr =>stemmer.stem(arr.zipWithIndex))  // stem words in files
-     .map(countWords)                             // transforms words into Map of word -> occurences
-     .map(mapToIndex)                             // transform arrays to sparse
-  }
+//  val artUrlMap =searchEngine.articleUrls.asMap
+//  val bagMap = searchEngine.bagOfWords.asMap
+//  val rdd =searchEngine
+
   println("zrobione parsowanie")
 
 
 //
-  val c:RDD[IndexedRow] = indexRDD(rdd.map(_._2)).zipWithIndex().map {case (vector,index) => IndexedRow(index,vector) }
+  val c:RDD[IndexedRow] = searchEngine.rddToIndexedRows(rdd)
 
 
 
@@ -48,7 +35,7 @@ object dataframes extends App{
 //  dx.s.toDense.toArray.foreach(println)
 
   val str = sc.parallelize(List("Trump Binladin saudi arabia deal with Czech and Latvia ultimatum mercury"))
-  val ghj:SparseVector = indexRDD(str).collect()(0)
+  val ghj:SparseVector = searchEngine.indexEngine.indexRDD(str).collect()(0)
   print('l')
 
 
@@ -56,8 +43,15 @@ object dataframes extends App{
 
   transposeRows(toIndexedRowRDD(z)).mapValues((v:SparseVector) => corelation(v,ghj))
     .sortBy(_._2)
-    .map(x => (bagOfWords.xx().get(x._1),x)  )
+    .map(x => (searchEngine.artUrlMap.get(x._1),x)  )
     .collect()
     .foreach(println)
+
+  if(!appConf.isDataStored){
+  val serializer = new Serializer
+  serializer.serialize(searchEngine)
+  serializer.serialize(rdd)
+}
+//  serializer.serialize(indexEngine)
 
 }

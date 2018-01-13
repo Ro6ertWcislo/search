@@ -1,4 +1,3 @@
-import com.mongodb.spark.config.{ReadConfig, WriteConfig}
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.SparkSession
 
@@ -14,4 +13,5 @@ object SparkConf {
     .appName("SVDsearchEnginee")
     .getOrCreate()
   @transient lazy val sc: SparkContext = spark.sparkContext
+  val appConf: AppConfig = new ConfigBuilder().nextLaunchDefaultConfig()
 }

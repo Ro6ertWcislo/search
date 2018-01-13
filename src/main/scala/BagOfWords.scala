@@ -1,20 +1,16 @@
-import SparkConf.spark
+import SparkConf.{appConf, spark}
 import org.apache.spark.rdd.RDD
 
 class BagOfWords(val rdd:RDD[(String,String)]) extends Serializable{
 
-  private val stopwords = new StopWords("stopwords/large_stopwords.txt")
+
+  private val stopwords =new StopWords(appConf.stopWordsLocation)
   private val stemmer = new MyStemmer()
-  val files =rdd.map(_._1)
-    .zipWithIndex()
+  def getStemmer: MyStemmer = stemmer
 
-  val dupa = spark.sparkContext.textFile("urls/*").map(splitPaths)
+  
 
-  val xxx =dupa.join(files).map(_._2).map(tup => (tup._2,tup._1)).sortByKey().collect().toMap
-  val rr1 = dupa.collect
-  val rr2 = files.collect()
-  dupa.foreach(println)
-def xx() =xxx
+
   val bagOfWords: Array[String] = stemmer
     .stem(toCountedBagOfWords(rdd.map(_._2)))
     .filter(stopwords.notContains)
@@ -23,10 +19,7 @@ def xx() =xxx
     .collect()
     .sorted
 
-  def splitPaths(str:String): (String,String) = {
-    val strArr = str.split(";")
-    (strArr(0),strArr(1))
-  }
+
 
   def asMap: Map[String, Int] = bagOfWords.zipWithIndex.toMap
 

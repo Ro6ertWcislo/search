@@ -1,11 +1,12 @@
 
 class AppConfig(conf: ConfigBuilder) {
   val textDirectory:String =conf.textDirectory
-  val bagOfWordsStorage:String =conf.bagOfWordsStorage
-  val indexStorage: String =conf.indexStorage
-  val isBagOfWordsStored: Boolean =conf.isBagOfWordsStored
-  val isIndexStored: Boolean =conf.isIndexStored
-
+  val searchEngineStorage: String =conf.searchEngineStorage
+  val isDataStored: Boolean =conf.isDataStored
+  val urlsDirectory: String = conf.urlsDirectory
+  val stopWordsLocation: String = conf.stopWordsLocation
+  val persistData:Boolean =conf.persistData
+  val rddStorage:String  = conf.rddStorage
 }
 
 

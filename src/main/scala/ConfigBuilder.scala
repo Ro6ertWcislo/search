@@ -1,36 +1,57 @@
 
 class ConfigBuilder {
   var textDirectory:String =""
-  var bagOfWordsStorage:String =""
-  var indexStorage: String =""
-  var isBagOfWordsStored =false
-  var isIndexStored =false
+  var searchEngineStorage: String =""
+  var isDataStored =false
+  var stopWordsLocation: String =""
+  var urlsDirectory:String = ""
+  var persistData: Boolean=true
+  var rddStorage:String = ""
 
-  def bagOfWordsStored(): ConfigBuilder ={
-    isBagOfWordsStored=true
+
+  def dataStored(): ConfigBuilder ={
+    isDataStored=true
     this
   }
-  def indexStored(): ConfigBuilder ={
-    isIndexStored=true
+  def NoPersistance():ConfigBuilder ={
+    persistData =false
     this
   }
   def textDirectory(path:String): ConfigBuilder = {
     textDirectory = path
     this
   }
-  def bagOfWordsStorage(path:String): ConfigBuilder = {
-    bagOfWordsStorage = path
-    this
-  }
-  def indexStorage(path:String): ConfigBuilder = {
-    indexStorage = path
+  def rddStorage(path:String): ConfigBuilder = {
+    rddStorage = path
     this
   }
 
-  def build() ={
-    if (textDirectory.isEmpty || bagOfWordsStorage.isEmpty || indexStorage.isEmpty)
-      throw  NotSufficientInfoProvided()
+  def searchEngineStorage(path:String): ConfigBuilder = {
+    searchEngineStorage = path
+    this
+  }
+
+  def build(): AppConfig ={
+
+    // TODO add validation
+
     new AppConfig(this)
+  }
+  def firstLaunchDefaultConfig():AppConfig ={
+    textDirectory ="arts/"
+    stopWordsLocation ="stopwords/large_stopwords.txt"
+    urlsDirectory ="urls/"
+    searchEngineStorage = "persistence/searchEngine"
+    rddStorage = "persistence/rdd"
+
+    new AppConfig(this)
+  }
+  def nextLaunchDefaultConfig():AppConfig ={
+    isDataStored =true
+    searchEngineStorage = "persistence/searchEngine"
+    rddStorage = "persistence/rdd"
+    new AppConfig(this)
+
   }
 
   case class NotSufficientInfoProvided() extends Throwable
