@@ -3,11 +3,12 @@ import SparkConf._
 import utils._
 import org.apache.spark.mllib.linalg.distributed.{CoordinateMatrix, IndexedRow, IndexedRowMatrix, RowMatrix}
 import org.apache.spark.mllib.linalg.{SparseVector, Vector, Vectors}
-
+import org.apache.spark.sql.functions.input_file_name
 object dataframes extends App{
-  val rdd: RDD[String] = spark.sparkContext.textFile("arts/*").cache()
-  val x =new BagOfWords(rdd)
-  val bagMap = x.asMap
+
+  val rdd: RDD[(String,String)] = spark.sparkContext.wholeTextFiles("arts/*").cache()
+  val bagOfWords =new BagOfWords(rdd)
+  val bagMap = bagOfWords.asMap
   val stemmer = new MyStemmer()
 
 
@@ -33,7 +34,7 @@ object dataframes extends App{
 
 
 //
-  val c:RDD[IndexedRow] = indexRDD(rdd).zipWithIndex().map {case (vector,index) => IndexedRow(index,vector) }
+  val c:RDD[IndexedRow] = indexRDD(rdd.map(_._2)).zipWithIndex().map {case (vector,index) => IndexedRow(index,vector) }
 
 
 
@@ -46,7 +47,7 @@ object dataframes extends App{
 //  val dx = z.computeSVD(300,computeU = true)
 //  dx.s.toDense.toArray.foreach(println)
 
-  val str = sc.parallelize(List(" RObert forced to dupa left-singular vectors and right-singular vectors"))
+  val str = sc.parallelize(List("Trump Binladin saudi arabia deal with Czech and Latvia ultimatum mercury"))
   val ghj:SparseVector = indexRDD(str).collect()(0)
   print('l')
 
@@ -55,6 +56,7 @@ object dataframes extends App{
 
   transposeRows(toIndexedRowRDD(z)).mapValues((v:SparseVector) => corelation(v,ghj))
     .sortBy(_._2)
+    .map(x => (bagOfWords.xx().get(x._1),x)  )
     .collect()
     .foreach(println)
 

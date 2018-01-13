@@ -1,3 +1,5 @@
+import java.io.File
+
 import breeze.numerics.Bessel.i1
 import org.apache.spark.ml.linalg.Matrix
 import org.apache.spark.mllib.feature
@@ -6,6 +8,7 @@ import org.apache.spark.mllib.linalg.{SparseVector, Vectors}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
+import org.rovak.scraper.scrapers.Scraper
 
 object PlayGround extends App {
 
@@ -85,11 +88,16 @@ object PlayGround extends App {
 //    val c =Vectors.sparse(200000*i,(1 to 100000*i).toArray,(1 to 100000*i).map(_.toDouble).toArray[Double]).toSparse
 //    print(IDF2(c).values.length)
 //  }}
-def SparseVectorLength(v:SparseVector):Double = {math.sqrt(v.values.map(value => value*value).sum)}
-    val c1 = Vectors.sparse(100,Array(0,5,11),Array(1,2,2)).toSparse
-    val c2 = Vectors.sparse(100,Array(1,2,10),Array(1,2,2)).toSparse
-    print(SparseVectorLength(c1.toSparse))
-    import SparkConf._
-    println(c1.apply(10))
+//def SparseVectorLength(v:SparseVector):Double = {math.sqrt(v.values.map(value => value*value).sum)}
+//    val c1 = Vectors.sparse(100,Array(0,5,11),Array(1,2,2)).toSparse
+//    val c2 = Vectors.sparse(100,Array(1,2,10),Array(1,2,2)).toSparse
+//    print(SparseVectorLength(c1.toSparse))
+//    import SparkConf._
+//    println(c1.apply(10))
+    Scraper.parseAndSave("https://www.bloomberg.com/news/articles/2018-01-13/african-ambassadors-to-un-blast-trump-remark-as-racist",
+      "www.bloomberg.com","arts")
+
+  Thread.sleep(10000000)
+//  print(new File("").getAbsolutePath)
 
 }
