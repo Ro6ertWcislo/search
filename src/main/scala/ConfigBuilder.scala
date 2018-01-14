@@ -1,12 +1,12 @@
-
+import java.io.File
 class ConfigBuilder {
   var textDirectory:String =""
-  var searchEngineStorage: String =""
+  var searchEngineStorage = "persistence/searchEngine"
   var isDataStored =false
   var stopWordsLocation: String =""
   var urlsDirectory:String = ""
   var persistData: Boolean=true
-  var rddStorage:String = ""
+  var rddStorage = "persistence/rdd"
 
 
   def dataStored(): ConfigBuilder ={
@@ -41,17 +41,17 @@ class ConfigBuilder {
     textDirectory ="arts/"
     stopWordsLocation ="stopwords/large_stopwords.txt"
     urlsDirectory ="urls/"
-    searchEngineStorage = "persistence/searchEngine"
-    rddStorage = "persistence/rdd"
 
     new AppConfig(this)
   }
   def nextLaunchDefaultConfig():AppConfig ={
     isDataStored =true
-    searchEngineStorage = "persistence/searchEngine"
-    rddStorage = "persistence/rdd"
     new AppConfig(this)
-
+  }
+  def autoConfigBuild(): AppConfig ={
+    if(new File(rddStorage).exists() && new File(searchEngineStorage).exists())
+      nextLaunchDefaultConfig()
+    else firstLaunchDefaultConfig()
   }
 
   case class NotSufficientInfoProvided() extends Throwable

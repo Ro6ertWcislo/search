@@ -1,4 +1,6 @@
+import org.apache.spark.mllib.linalg.distributed.IndexedRow
 import org.apache.spark.mllib.linalg.{SparseVector, Vectors}
+import org.apache.spark.rdd
 import org.apache.spark.rdd.RDD
 
 class IndexEngine(bagOfWords: BagOfWords) extends Serializable{
@@ -23,4 +25,7 @@ class IndexEngine(bagOfWords: BagOfWords) extends Serializable{
       .map(countWords)                             // transforms words into Map of word -> occurences
       .map(mapToIndex)                             // transform arrays to sparse
   }
+  def rddToIndexedRows(rdd: RDD[(String,String)]): RDD[IndexedRow] =indexRDD(rdd.map(_._2))
+    .zipWithIndex()
+    .map {case (vector,index) => IndexedRow(index,vector) }
 }

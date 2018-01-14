@@ -1,6 +1,6 @@
 import java.io._
 
-import SparkConf.{appConf, sc}
+import SparkConf.appConf
 import org.apache.spark.rdd.RDD
 class Serializer {
 

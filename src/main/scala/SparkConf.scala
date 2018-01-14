@@ -13,5 +13,5 @@ object SparkConf {
     .appName("SVDsearchEnginee")
     .getOrCreate()
   @transient lazy val sc: SparkContext = spark.sparkContext
-  val appConf: AppConfig = new ConfigBuilder().nextLaunchDefaultConfig()
+  val appConf: AppConfig = new ConfigBuilder().autoConfigBuild()
 }

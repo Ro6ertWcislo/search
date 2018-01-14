@@ -5,13 +5,13 @@ import org.apache.spark.mllib.linalg.distributed.{CoordinateMatrix, IndexedRow, 
 import org.apache.spark.mllib.linalg.{SparseVector, Vector, Vectors}
 object dataframes extends App{
 
-  def getRDD: RDD[(String,String)] = {
-   if(appConf.isDataStored) sc.objectFile(appConf.rddStorage).cache()
-   else sc.wholeTextFiles(appConf.textDirectory).cache()
-  }
-
-  val rdd: RDD[(String,String)] = getRDD
-  val searchEngine = SearchEngine(rdd)
+//  def getIndexedRows: RDD[(String,String)] = {
+//   if(appConf.isDataStored) sc.objectFile(appConf.rddStorage).cache()
+//   else {sc.wholeTextFiles(appConf.textDirectory).cache()}
+//  }
+//
+//  val rdd: RDD[(String,String)] = getIndexedRows
+  val searchEngine = SearchEngine()
 
 //  val artUrlMap =searchEngine.articleUrls.asMap
 //  val bagMap = searchEngine.bagOfWords.asMap
@@ -21,7 +21,7 @@ object dataframes extends App{
 
 
 //
-  val c:RDD[IndexedRow] = searchEngine.rddToIndexedRows(rdd)
+  //val indexedRows:RDD[IndexedRow] = searchEngine.indexEngine.rddToIndexedRows(rdd)
 
 
 
@@ -29,19 +29,21 @@ object dataframes extends App{
   //
 //  println("zrobione indeksowanie")
 //  val dupa = indexRDD(rdd).collect()
-  val z:RDD[(Long,SparseVector)] = transposeRows(c).mapValues(IDF)
+  val z:RDD[(Long,SparseVector)] =sc.objectFile(appConf.rddStorage).cache() //transposeRows(indexedRows).mapValues(IDF)
 
-//  val dx = z.computeSVD(300,computeU = true)
-//  dx.s.toDense.toArray.foreach(println)
+  val im = new IndexedRowMatrix(toIndexedRowRDD(transposeRows(toIndexedRowRDD(z))))
+  val svd = im.computeSVD(100,computeU = true)
+  val ss = svd.U.rows.collect()
+  val d = multiplyIndexedRowMatrixByDiagArray(svd.U,svd.s).multiply(svd.V.transpose)
 
-  val str = sc.parallelize(List("Trump Binladin saudi arabia deal with Czech and Latvia ultimatum mercury"))
+  val str = sc.parallelize(List("arab taxes"))
   val ghj:SparseVector = searchEngine.indexEngine.indexRDD(str).collect()(0)
   print('l')
 
 
 
 
-  transposeRows(toIndexedRowRDD(z)).mapValues((v:SparseVector) => corelation(v,ghj))
+  d.rows.map(sss =>(sss.index,sss.vector)).mapValues(_.toSparse).mapValues((v:SparseVector) => corelation(v,ghj))
     .sortBy(_._2)
     .map(x => (searchEngine.artUrlMap.get(x._1),x)  )
     .collect()
@@ -50,7 +52,7 @@ object dataframes extends App{
   if(!appConf.isDataStored){
   val serializer = new Serializer
   serializer.serialize(searchEngine)
-  serializer.serialize(rdd)
+  serializer.serialize(z)
 }
 //  serializer.serialize(indexEngine)
 
