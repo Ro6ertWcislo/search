@@ -1,6 +1,7 @@
 import java.io._
 
 import SparkConf.appConf
+import org.apache.spark.mllib.linalg.distributed.IndexedRowMatrix
 import org.apache.spark.rdd.RDD
 class Serializer {
 

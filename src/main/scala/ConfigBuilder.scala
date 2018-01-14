@@ -1,7 +1,7 @@
 import java.io.File
 class ConfigBuilder {
   var textDirectory:String =""
-  var searchEngineStorage = "persistence/searchEngine"
+  var searchEngineStorage = "persistence/searchEngine200"
   var isDataStored =false
   var stopWordsLocation: String =""
   var urlsDirectory:String = ""
@@ -25,6 +25,7 @@ class ConfigBuilder {
     rddStorage = path
     this
   }
+
 
   def searchEngineStorage(path:String): ConfigBuilder = {
     searchEngineStorage = path
@@ -55,5 +56,7 @@ class ConfigBuilder {
   }
 
   case class NotSufficientInfoProvided() extends Throwable
+
+
 
 }
