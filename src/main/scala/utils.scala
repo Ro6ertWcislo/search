@@ -20,13 +20,23 @@ object utils {
     Vectors.sparse(v.size, v.indices, newValues).toSparse
   }
 
+
   def dotProduct(v1: SparseVector, v2: SparseVector): Double = {
-    val eq = v1.indices.toSet.intersect(v2.indices.toSet)
-    eq.foldLeft(0.0) { (acc, ind) => acc + v1(ind) + v2(ind) }
+    v2.indices.foldLeft(0.0){(acc,ind) => acc + v1(ind)*v2(ind)}
   }
 
-  def sparseVectorLength(v: Vector): Double = 1.0 //math.sqrt(v.values.map(value => value*value).sum)
-  Vectors.dense(Array(1.0, 2, 3))
+  def normalize(v:SparseVector): SparseVector ={
+    val len =math.sqrt(v.values.map(value => value*value).sum)
+    Vectors.sparse(v.size,v.indices,v.values).toSparse
+  }
+  def time[R](block: => R): R = {
+    val t0 = System.nanoTime()
+    val result = block // call-by-name
+    val t1 = System.nanoTime()
+    val timediff = t1 - t0
+    println("Elapsed time: " + timediff + "ns")
+    result
+  }
 
   def multiplyIndexedRowMatrixByDiagMatrix(IDM: IndexedRowMatrix, diagonal: Vector): IndexedRowMatrix = {
     new IndexedRowMatrix(IDM.rows.map(x => IndexedRow(x.index, Vectors

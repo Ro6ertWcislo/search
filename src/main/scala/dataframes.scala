@@ -1,5 +1,6 @@
 import org.apache.spark.rdd.RDD
 import SparkConf._
+import dataframes.time
 import utils._
 import org.apache.spark.mllib.linalg.distributed.{IndexedRow, IndexedRowMatrix}
 import org.apache.spark.mllib.linalg.SparseVector
@@ -11,10 +12,16 @@ object dataframes extends App {
   val A = matrixEngineTuple._1
   val searchEngine = matrixEngineTuple._2
   val queryEngine = new QueryEngine(searchEngine.indexEngine, A)
-  val str = queryEngine.processQuery("may war plastic")
-  val res = searchEngine.matchResultsToUrls(str)
-  res.foreach(println)
-  println(A.rows.count())
+  println(query("may trump be with you", 25))
+  println(query("merkel wrong pakistan", 25))
+
+  for (i <- 1 to 10){
+    val tmp = Console.readLine()
+    time(query(tmp,10).foreach(println))
+  }
+
+ // query("schwarzman bayn playing",25).foreach(println)
+
   if (!appConf.isDataStored) {
     val serializer = new Serializer
     serializer.serialize(searchEngine)
@@ -23,7 +30,8 @@ object dataframes extends App {
 
   def init: (IndexedRowMatrix,SearchEngine) = {
     if(appConf.isDataStored){
-      val A =new IndexedRowMatrix(sc.objectFile(appConf.rddStorage))
+      val rdd:RDD[IndexedRow] =sc.objectFile(appConf.rddStorage).cache()
+      val A =new IndexedRowMatrix(rdd)
       val searchEngine = SearchEngine()
       return (A,searchEngine)
     }
@@ -33,6 +41,26 @@ object dataframes extends App {
     val afterIDF: RDD[(Long, SparseVector)] = transposeRows(indexedRows).mapValues(IDF)
     (lowRankApproximation(afterIDF,k),searchEngine)
   }
+  def query(text:String,k:Int): Array[String] ={
+    val str:RDD[(Long, Double)] =  time(queryEngine.processQuery(text))
+    val res:Array[(Option[String], (Long, Double))] =  time(searchEngine.matchResultsToUrls(str))
+      time(res.map(_._1.get).drop(res.length-k))
+  }
+
+  def time[R](block: => R): R = {
+    val t0 = System.nanoTime()
+    val result = block // call-by-name
+    val t1 = System.nanoTime()
+    val timediff = (t1 - t0)/1000000
+    println("Elapsed time: " + timediff + "ms")
+    result
+  }
+
+
+
+
+
+
 
 
 }

@@ -1,7 +1,7 @@
 import java.io.File
 class ConfigBuilder {
   var textDirectory:String =""
-  var searchEngineStorage = "persistence/searchEngine200"
+  var searchEngineStorage = "persistence/searchEngine"
   var isDataStored =false
   var stopWordsLocation: String =""
   var urlsDirectory:String = ""

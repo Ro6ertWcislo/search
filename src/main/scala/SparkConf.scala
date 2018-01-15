@@ -1,6 +1,5 @@
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.SparkSession
-
 object SparkConf {
 //  val bagOfWordsCollectionRead = ReadConfig(Map("uri" -> "mongodb://127.0.0.1/test.bagOfWords"))
 //  val bagOfWordsCollectionWrite = WriteConfig(Map("uri" -> "mongodb://127.0.0.1/test.bagOfWords"))
