@@ -21,7 +21,7 @@ object Scraper {
       val content = Jsoup.parse(page.doc.outerHtml()).text()
         println("yaaay")
         val fullPath: String = "/"+page.url.toString.replaceAll("[\\./:&?]","_")+".txt"
-        val file = new File(path +fullPath)
+        val file = new File(path + fullPath)
         println(file.toString)
         file.createNewFile()
 

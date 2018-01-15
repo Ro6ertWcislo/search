@@ -1,14 +1,13 @@
 import SparkConf.{appConf, spark}
 import org.apache.spark.rdd.RDD
 
-class BagOfWords(val rdd:RDD[(String,String)]) extends Serializable{
+class BagOfWords(val rdd: RDD[(String, String)]) extends Serializable {
 
 
-  private val stopwords =new StopWords(appConf.stopWordsLocation)
+  private val stopwords = new StopWords(appConf.stopWordsLocation)
   private val stemmer = new MyStemmer()
-  def getStemmer: MyStemmer = stemmer
 
-  
+  def getStemmer: MyStemmer = stemmer
 
 
   val bagOfWords: Array[String] = stemmer
@@ -20,10 +19,9 @@ class BagOfWords(val rdd:RDD[(String,String)]) extends Serializable{
     .sorted
 
 
-
   def asMap: Map[String, Int] = bagOfWords.zipWithIndex.toMap
 
-  def get():Array[String] = bagOfWords
+  def get(): Array[String] = bagOfWords
 
   //use conf
   def toBagOfWords(path: String): RDD[(String, Int)] = {

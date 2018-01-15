@@ -3,14 +3,16 @@ import java.io._
 import SparkConf.appConf
 import org.apache.spark.mllib.linalg.distributed.IndexedRowMatrix
 import org.apache.spark.rdd.RDD
+
 class Serializer {
 
-  def serialize(obj: Any):Unit = obj match {
-    case searchEngine: SearchEngine => serialize(searchEngine,appConf.searchEngineStorage)
+  def serialize(obj: Any): Unit = obj match {
+    case searchEngine: SearchEngine => serialize(searchEngine, appConf.searchEngineStorage)
     case rdd: RDD[AnyRef] => rdd.saveAsObjectFile(appConf.rddStorage)
     case _ => throw new IllegalArgumentException
   }
-  def serialize(obj: Any,path:String):Unit = {
+
+  def serialize(obj: Any, path: String): Unit = {
     val file = new File(path)
     file.createNewFile()
     val oos = new ObjectOutputStream(new FileOutputStream(file))

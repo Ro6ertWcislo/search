@@ -1,5 +1,4 @@
-
-import org.apache.spark.mllib.linalg.{SparseVector, Vector, Vectors}
+import org.apache.spark.mllib.linalg.{SparseVector, Vector, Vectors, DenseVector}
 import org.apache.spark.mllib.linalg.distributed.{IndexedRow, IndexedRowMatrix}
 import org.apache.spark.rdd.RDD
 
@@ -22,13 +21,18 @@ object utils {
 
 
   def dotProduct(v1: SparseVector, v2: SparseVector): Double = {
-    v2.indices.foldLeft(0.0){(acc,ind) => acc + v1(ind)*v2(ind)}
+    v2.indices.foldLeft(0.0) { (acc, ind) => acc + v1(ind) * v2(ind) }
   }
 
-  def normalize(v:SparseVector): SparseVector ={
-    val len =math.sqrt(v.values.map(value => value*value).sum)
-    Vectors.sparse(v.size,v.indices,v.values).toSparse
+ 
+  def normalize(v: Vector): Vector = {
+    val norm = Vectors.norm(v, 2)
+    v match {
+      case v1: SparseVector => Vectors.sparse(v1.size, v1.indices, v1.values.map(_ / norm))
+      case v2: DenseVector => Vectors.dense(v2.values.map(_ / norm))
+    }
   }
+
   def time[R](block: => R): R = {
     val t0 = System.nanoTime()
     val result = block // call-by-name
@@ -45,7 +49,7 @@ object utils {
         .map(d => d._1 * d._2)))))
   }
 
-  def lowRankApproximation(rdd: RDD[(Long, SparseVector)],k:Int): IndexedRowMatrix = {
+  def lowRankApproximation(rdd: RDD[(Long, SparseVector)], k: Int): RDD[(Long, Vector)] = {
     val svd = new IndexedRowMatrix(
       toIndexedRowRDD(
         transposeRows(
@@ -54,5 +58,8 @@ object utils {
     val s = svd.s
     val VT = svd.V.transpose
     multiplyIndexedRowMatrixByDiagMatrix(U, s).multiply(VT)
+      .rows
+      .map(row => (row.index, row.vector))
+      .mapValues(normalize)
   }
 }
