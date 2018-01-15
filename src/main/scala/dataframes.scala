@@ -1,26 +1,24 @@
 import org.apache.spark.rdd.RDD
 import SparkConf._
-import dataframes.time
 import utils._
 import org.apache.spark.mllib.linalg.distributed.{IndexedRow, IndexedRowMatrix}
 import org.apache.spark.mllib.linalg.SparseVector
 
 object dataframes extends App {
+  sc.setLogLevel("ERROR")
   val k =350
-
+  val results =70
   val matrixEngineTuple = init
   val A = matrixEngineTuple._1
   val searchEngine = matrixEngineTuple._2
   val queryEngine = new QueryEngine(searchEngine.indexEngine, A)
-  println(query("may trump be with you", 25))
-  println(query("merkel wrong pakistan", 25))
-
-  for (i <- 1 to 10){
+  println("You can type your query now:")
+  if(appConf.isDataStored)
+  while (true){
     val tmp = Console.readLine()
-    time(query(tmp,10).foreach(println))
+    time(query(tmp,results).foreach(tup => println(tup._1 + "   " + tup._2)))
   }
 
- // query("schwarzman bayn playing",25).foreach(println)
 
   if (!appConf.isDataStored) {
     val serializer = new Serializer
@@ -41,10 +39,10 @@ object dataframes extends App {
     val afterIDF: RDD[(Long, SparseVector)] = transposeRows(indexedRows).mapValues(IDF)
     (lowRankApproximation(afterIDF,k),searchEngine)
   }
-  def query(text:String,k:Int): Array[String] ={
-    val str:RDD[(Long, Double)] =  time(queryEngine.processQuery(text))
-    val res:Array[(Option[String], (Long, Double))] =  time(searchEngine.matchResultsToUrls(str))
-      time(res.map(_._1.get).drop(res.length-k))
+  def query(text:String,k:Int): Array[(String,Double)] ={
+    val str:RDD[(Long, Double)] =  queryEngine.processQuery(text)
+    val res:Array[(Option[String], (Long, Double))] =  searchEngine.matchResultsToUrls(str,k)
+      res.map(row =>(row._1.get,row._2._2))
   }
 
   def time[R](block: => R): R = {

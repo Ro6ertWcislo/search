@@ -9,7 +9,7 @@ class QueryEngine(val indexEngine: IndexEngine,val IRM:IndexedRowMatrix) extends
     val indexedQuery = indexEngine.indexRDD(strRDD).first()
     prepareInput(IRM)
       .mapValues(v => corelation(v,indexedQuery))
-      .sortBy(_._2)
+      .sortBy(_._2,ascending = false)
   }
   def prepareInput(indexedRowMatrix: IndexedRowMatrix): RDD[(Long,SparseVector)] =
     indexedRowMatrix

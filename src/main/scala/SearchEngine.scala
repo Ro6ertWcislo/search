@@ -7,10 +7,10 @@ import org.apache.spark.mllib.linalg.distributed.IndexedRow
 import org.apache.spark.rdd
 
 class SearchEngine private(rdd: RDD[(String,String)]) extends Serializable{
-  def matchResultsToUrls(rdd: RDD[(Long, Double)]): Array[(Option[String], (Long, Double))] =
+  def matchResultsToUrls(rdd: RDD[(Long, Double)],k:Int): Array[(Option[String], (Long, Double))] =
     rdd
     .map(tup => (artUrlMap.get(tup._1),tup) )
-    .collect()
+    .take(k)
 
   val bagOfWords = new BagOfWords(rdd)
   val articleUrls = new ArticleUrls(rdd)
