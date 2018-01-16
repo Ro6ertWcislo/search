@@ -14,7 +14,7 @@ object utils {
     rdd.map { case (i: Long, v: SparseVector) => IndexedRow(i, v) }
 
   def IDF(v: SparseVector): SparseVector = {
-    val idfFactor = v.size.toDouble / v.numActives.toDouble
+    val idfFactor = math.log(v.size.toDouble / v.numActives.toDouble)
     val newValues = v.values.map(_ * idfFactor)
     Vectors.sparse(v.size, v.indices, newValues).toSparse
   }
@@ -24,7 +24,7 @@ object utils {
     v2.indices.foldLeft(0.0) { (acc, ind) => acc + v1(ind) * v2(ind) }
   }
 
- 
+
   def normalize(v: Vector): Vector = {
     val norm = Vectors.norm(v, 2)
     v match {
@@ -60,6 +60,5 @@ object utils {
     multiplyIndexedRowMatrixByDiagMatrix(U, s).multiply(VT)
       .rows
       .map(row => (row.index, row.vector))
-      .mapValues(normalize)
   }
 }
